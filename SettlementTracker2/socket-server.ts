@@ -42,7 +42,7 @@ app.prepare().then(() => {
     path: '/api/socket',
     addTrailingSlash: false,
     cors: {
-      origin: '*',
+      origin: process.env.NEXTAUTH_URL,
       methods: ['GET', 'POST', 'OPTIONS'],
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization'],
@@ -106,7 +106,7 @@ app.prepare().then(() => {
     });
   });
 
-  const PORT = process.env.SOCKET_PORT || 3002;
+  const PORT = process.env.PORT || 3002;
   server.listen(PORT, () => {
     console.log(`✅ Socket.io server running on port ${PORT}`);
     console.log(`✅ Next.js app running on http://localhost:3000`);
