@@ -202,7 +202,7 @@ export default function Dashboard() {
       {/* Steps Section */}
       <Card>
         <CardHeader>
-          <CardTitle>How TripSplit Works</CardTitle>
+          <CardTitle>How Settlement Tracker Works</CardTitle>
           <CardDescription>Follow these simple steps to manage your trip expenses</CardDescription>
         </CardHeader>
         <CardContent>
