@@ -1,8 +1,8 @@
 // app/api/chat/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import prisma from '@/lib/db'; // ✅ Direct database access
+import { authOptions } from "@/lib/auth";
+import prisma from '@/lib/db'; 
 import Groq from 'groq-sdk';
 import { PROMPT_CONTEXTS, QueryValidator, ResponseGenerator } from '@/app/(dashboard)/prompts';
 import { ResponseContext } from '@/app/(dashboard)/prompts/types';
