@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String   @unique
+  password  String?
+  image     String?
+  provider  String?
+  deleted   Boolean  @default(false)
+  messages Message[] 
+  tripMembers TripMember[]  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Otp {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  otp       String
+  purpose   String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model Trip {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  destination   String
+  description   String?
+  budget        Float
+  image         String?
+
+  startDate     DateTime
+  endDate       DateTime
+
+  inviteCode    String       @unique
+
+  members       TripMember[]
+  expenses      Expense[]
+  messages      Message[]
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model TripMember {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  tripId    String   @db.ObjectId
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  userId    String?  @db.ObjectId  
+  user      User?    @relation(fields: [userId], references: [id])
+
+  name      String
+  email     String?
+
+  joined    Boolean  @default(false)
+  isAdmin   Boolean  @default(false)
+
+  lastReadAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tripId, email])
+}
+
+model Expense {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  tripId      String   @db.ObjectId
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+
+  amount      Float
+
+  paidBy      String
+  category    String?
+
+  metadata    String? 
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Message {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  tripId      String   @db.ObjectId
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  senderId    String?   @db.ObjectId
+  sender      User?     @relation(fields: [senderId], references: [id],onDelete:SetNull)
+
+  text        String
+  type        String   @default("text")
+  metadata    String? 
+  edited      Boolean  @default(false)
+  editedAt    DateTime?
+  deleted     Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([createdAt])
+  @@index([deleted])
+}

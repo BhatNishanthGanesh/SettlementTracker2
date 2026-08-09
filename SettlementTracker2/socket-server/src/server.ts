@@ -6,6 +6,7 @@ import http from "http";
 import healthRouter from "./routes/health";
 import { createSocket } from "./config/socket";
 import { registerSocketHandlers } from "./handlers/socketHandler";
+import { createBroadcastRouter } from "./routes/broadcast";
 
 const app = express();
 dotenv.config();
@@ -26,6 +27,11 @@ const server = http.createServer(app);
 const io = createSocket(server);
 
 registerSocketHandlers(io);
+
+app.use(
+  "/broadcast",
+  createBroadcastRouter(io)
+);
 
 const PORT = process.env.PORT || 3002;
 
