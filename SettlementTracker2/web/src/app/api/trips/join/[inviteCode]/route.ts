@@ -1,17 +1,30 @@
+// app/api/trips/join/[inviteCode]/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 
 import prisma from "@/lib/db";
 import { requireUser } from "@/helpers/auth";
 
+// =====================================================
+// GET - Get trip information from invite code
+// =====================================================
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { inviteCode: string } }
+  {
+    params,
+  }: {
+    params: Promise<{
+      inviteCode: string;
+    }>;
+  }
 ) {
   try {
+    const { inviteCode } = await params;
+
     const trip = await prisma.trip.findUnique({
       where: {
-        inviteCode: params.inviteCode,
+        inviteCode,
       },
       select: {
         id: true,
@@ -27,8 +40,12 @@ export async function GET(
 
     if (!trip) {
       return NextResponse.json(
-        { error: "Invalid invitation link" },
-        { status: 404 }
+        {
+          error: "Invalid invitation link",
+        },
+        {
+          status: 404,
+        }
       );
     }
 
@@ -42,25 +59,44 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("Error fetching trip:", error);
+    console.error(
+      "Error fetching trip:",
+      error
+    );
 
     return NextResponse.json(
-      { error: "Failed to fetch trip information" },
-      { status: 500 }
+      {
+        error: "Failed to fetch trip information",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
 
+// =====================================================
 // POST - Join trip
+// =====================================================
+
 export async function POST(
-  { params }: { params: { inviteCode: string } }
+  request: NextRequest,
+  {
+    params,
+  }: {
+    params: Promise<{
+      inviteCode: string;
+    }>;
+  }
 ) {
   try {
     const user = await requireUser();
 
+    const { inviteCode } = await params;
+
     const trip = await prisma.trip.findUnique({
       where: {
-        inviteCode: params.inviteCode,
+        inviteCode,
       },
       include: {
         members: true,
@@ -69,78 +105,115 @@ export async function POST(
 
     if (!trip) {
       return NextResponse.json(
-        { error: "Invalid invitation link" },
-        { status: 404 }
+        {
+          error: "Invalid invitation link",
+        },
+        {
+          status: 404,
+        }
       );
     }
+
+    // =================================================
+    // Find existing TripMember
+    // =================================================
 
     let member = trip.members.find(
-      member => member.userId === user.id
+      (member) =>
+        member.userId === user.id
     );
 
+    // If not found by userId, try email.
+    // This handles invited users whose account
+    // existed after the TripMember was created.
     if (!member) {
       member = trip.members.find(
-        member => member.email === user.email
+        (member) =>
+          member.email === user.email
       );
     }
 
+    // =================================================
+    // Existing member
+    // =================================================
+
     if (member) {
-      if (!member.userId) {
-        await prisma.tripMember.update({
-          where: {
-            id: member.id,
-          },
-          data: {
-            userId: user.id,
-            joined: true,
-          },
-        });
-      } else if (!member.joined) {
-        await prisma.tripMember.update({
-          where: {
-            id: member.id,
-          },
-          data: {
-            joined: true,
-          },
-        });
-      }
+      // IMPORTANT:
+      //
+      // If the TripMember previously had
+      // userId = null, connect it to the
+      // actual logged-in User.
+      //
+      // This is important for expenses because:
+      //
+      // Expense.paidBy -> TripMember.id
+      //
+      // TripMember.userId -> User.id
+      //
+
+      await prisma.tripMember.update({
+        where: {
+          id: member.id,
+        },
+        data: {
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          joined: true,
+        },
+      });
 
       return NextResponse.json({
         success: true,
-        message: "Already a member of this trip.",
+        message:
+          "Successfully joined the trip.",
         data: {
           tripId: trip.id,
           tripName: trip.name,
+          memberId: member.id,
         },
       });
     }
 
-    await prisma.tripMember.create({
-      data: {
-        tripId: trip.id,
-        userId: user.id,
-        name: user.name,
-        email: user.email,
-        joined: true,
-        isAdmin: false,
-      },
-    });
+    // =================================================
+    // New member
+    // =================================================
+
+    const newMember =
+      await prisma.tripMember.create({
+        data: {
+          tripId: trip.id,
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          joined: true,
+          isAdmin: false,
+        },
+      });
 
     return NextResponse.json({
       success: true,
-      message: "Successfully joined the trip.",
+      message:
+        "Successfully joined the trip.",
       data: {
         tripId: trip.id,
         tripName: trip.name,
+        memberId: newMember.id,
       },
     });
   } catch (error) {
-    console.error("Error joining trip:", error);
+    console.error(
+      "Error joining trip:",
+      error
+    );
 
     return NextResponse.json(
-      { error: "Failed to join trip" },
-      { status: 500 }
+      {
+        error: "Failed to join trip",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
