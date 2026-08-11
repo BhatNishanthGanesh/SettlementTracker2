@@ -38,13 +38,13 @@ model Otp {
 model Trip {
   id            String       @id @default(auto()) @map("_id") @db.ObjectId
   name          String
-  destination   String
+  destination   String?
   description   String?
   budget        Float
   image         String?
 
   startDate     DateTime
-  endDate       DateTime
+  endDate       DateTime?
 
   inviteCode    String       @unique
 

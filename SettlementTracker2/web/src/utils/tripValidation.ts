@@ -4,7 +4,6 @@ import {
   Member,
 } from "@/types/trip.types";
 
-
 export const validateStep1 = ({
   formData,
   isDateValid,
@@ -26,13 +25,6 @@ export const validateStep1 = ({
     });
   }
 
-  if (!formData.destination.trim()) {
-    errors.push({
-      field: "destination",
-      message: "Destination is required",
-    });
-  }
-
   if (!formData.startDate) {
     errors.push({
       field: "startDate",
@@ -45,12 +37,7 @@ export const validateStep1 = ({
     });
   }
 
-  if (!formData.endDate) {
-    errors.push({
-      field: "endDate",
-      message: "End Date is required",
-    });
-  } else if (!isDateValid(formData.endDate)) {
+  if (!isDateValid(formData.endDate)) {
     errors.push({
       field: "endDate",
       message: "Invalid End Date",
@@ -69,8 +56,7 @@ export const validateStep1 = ({
   ) {
     errors.push({
       field: "endDate",
-      message:
-        "End Date must be after Start Date",
+      message: "End Date must be after Start Date",
     });
   }
 
@@ -79,7 +65,8 @@ export const validateStep1 = ({
 
 export const validateStep2 = (
   formData: TripFormData,
-  members: Member[]
+  members: Member[],
+  sessionEmail?: string | null
 ): TripValidationErrors[] => {
   const errors: TripValidationErrors[] = [];
 
@@ -92,10 +79,7 @@ export const validateStep2 = (
   } else {
     const budgetNum = parseFloat(formData.budget);
 
-    if (
-      isNaN(budgetNum) ||
-      budgetNum <= 0
-    ) {
+    if (isNaN(budgetNum) || budgetNum <= 0) {
       errors.push({
         field: "budget",
         message:
@@ -104,18 +88,13 @@ export const validateStep2 = (
     }
   }
 
-  // Members
-  const hasInvalidMembers = members.some(
-    (member) => {
-      const hasName =
-        member.name?.trim() !== "";
+  // Members: name and email must both be present
+  const hasInvalidMembers = members.some((member) => {
+    const hasName = member.name?.trim() !== "";
+    const hasEmail = member.email?.trim() !== "";
 
-      const hasEmail =
-        member.email?.trim() !== "";
-
-      return hasName !== hasEmail;
-    }
-  );
+    return hasName !== hasEmail;
+  });
 
   if (hasInvalidMembers) {
     errors.push({
@@ -125,17 +104,52 @@ export const validateStep2 = (
     });
   }
 
+  // Get all non-empty member emails
+  const emails = members
+    .map((member) =>
+      member.email?.trim().toLowerCase()
+    )
+    .filter(Boolean) as string[];
+
+  // Duplicate member emails
+  const hasDuplicateEmails =
+    new Set(emails).size !== emails.length;
+
+  if (hasDuplicateEmails) {
+    errors.push({
+      field: "members",
+      message:
+        "The same email cannot be used for multiple members",
+    });
+  }
+
+  // Member cannot use creator's email
+  if (
+    sessionEmail &&
+    emails.includes(
+      sessionEmail.trim().toLowerCase()
+    )
+  ) {
+    errors.push({
+      field: "members",
+      message:
+        "You cannot add same email for a trip member",
+    });
+  }
+
   return errors;
 };
 
 export const validateTrip = ({
   formData,
   members = [],
+  sessionEmail,
   isDateValid,
   isEndDateValid,
 }: {
   formData: TripFormData;
   members?: Member[];
+  sessionEmail?: string | null;
   isDateValid: (value: string) => boolean;
   isEndDateValid: (
     startDate: string,
@@ -151,7 +165,8 @@ export const validateTrip = ({
 
     ...validateStep2(
       formData,
-      members
+      members,
+      sessionEmail
     ),
   ];
 };

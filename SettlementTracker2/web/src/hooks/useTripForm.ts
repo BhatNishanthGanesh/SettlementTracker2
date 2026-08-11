@@ -48,7 +48,7 @@ const initialDateErrors: DateErrors = {
   endDate: "",
 };
 
-export const useTripForm = () => {
+export const useTripForm = (sessionEmail?: string | null) => {
   const router = useRouter();
 
   const [formData, setFormData] = useState<TripFormData>(initialFormData);
@@ -169,7 +169,8 @@ export const useTripForm = () => {
       case 2:
         errors = validateStep2(
           formData,
-          members
+          members,
+          sessionEmail
         );
         break;
 

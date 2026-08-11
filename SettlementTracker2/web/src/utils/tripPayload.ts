@@ -9,9 +9,8 @@ export function buildTripPayload(
   members: CreateTripMember[],
   imageUrl: string | null
 ): CreateTripPayload {
-  
   return {
-    tripName: formData.name,
+    name: formData.name,
     destination: formData.destination,
     startDate: formData.startDate,
     endDate: formData.endDate || null,

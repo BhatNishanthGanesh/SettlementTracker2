@@ -46,7 +46,7 @@ export interface CreateTripMember {
 }
 
 export interface CreateTripPayload {
-  tripName: string;
+  name: string;
   destination: string;
   startDate: string;
   endDate: string | null;
