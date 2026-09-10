@@ -502,7 +502,7 @@
             ],
 
             model:
-              "openai/gpt-oss-120b",
+              "openai/gpt-oss-20b",
 
             temperature: 0.7,
 
