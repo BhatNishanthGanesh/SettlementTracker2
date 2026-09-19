@@ -32,7 +32,7 @@ export function ExpenseSummary({
             </div>
           </div>
           <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1.5">
-            ₹{formatCurrency(totalSpent)}
+            {formatCurrency(totalSpent)}
           </p>
         </div>
 
@@ -48,7 +48,7 @@ export function ExpenseSummary({
             </div>
           </div>
           <p className={`text-xl sm:text-2xl font-bold mt-1.5 ${isOverBudget ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-            ₹{formatCurrency(Math.abs(remaining))}
+            {formatCurrency(Math.abs(remaining))}
             {isOverBudget && <span className="text-sm font-normal text-red-400 ml-1">over</span>}
           </p>
         </div>
@@ -61,7 +61,7 @@ export function ExpenseSummary({
             </div>
           </div>
           <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1.5">
-            ₹{formatCurrency(dailyAverage)}
+            {formatCurrency(dailyAverage)}
           </p>
         </div>
 

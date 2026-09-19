@@ -240,14 +240,15 @@ const handleSendMessage = (
               <SettleTab
                 trip={trip}
                 currentUser={currentUser}
-                onSettleUp={memberId => {
+                onSettleUp={async memberId => {
                   const member = trip.members.find(
                     (member: Member) => member.id === memberId
                   );
 
-                  toast.info(
-                    `Settle up with ${member?.name
-                    } - Feature coming soon!`
+                  await refresh();
+                  toast.success(
+                    `Settlement recorded for ${member?.name ?? "member"}.`,
+                    { description: "The group balance has been updated." }
                   );
                 }}
               />

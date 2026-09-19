@@ -41,7 +41,9 @@ export function TripDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 border-0 shadow-2xl p-0">
+      <DialogContent
+  className="w-[95vw] !max-w-3xl max-h-[85vh] overflow-y-auto bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 border-0 shadow-2xl p-0"
+>
         {/* Header with Cover */}
         <div className="relative h-48 w-full rounded-t-2xl overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />

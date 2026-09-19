@@ -369,35 +369,28 @@ export function useMessages(tripId: string, tripName?: string) {
         };
 
         const response =
-  await messageService.sendMessage(
-    tripId,
-    payload
-  );
+          await messageService.sendMessage(
+            tripId,
+            payload
+          );
 
-console.log("📤 MESSAGE API RESPONSE:", response);
-console.log("📦 RESPONSE DATA:", response.data);
+        const sentMessage = response.data?.data;
 
-const sentMessage = response.data?.data;
 
-console.log("📨 SENT MESSAGE:", sentMessage);
+        if (sentMessage) {
+          const message = mapApiMessageToMessage(sentMessage);
 
-if (sentMessage) {
-  const message = mapApiMessageToMessage(sentMessage);
+          setMessages((prev) => {
 
-  console.log("✅ MAPPED MESSAGE:", message);
+            if (prev.some((msg) => msg.id === message.id)) {
+              return prev;
+            }
 
-  setMessages((prev) => {
-    console.log("🔄 PREVIOUS MESSAGES:", prev);
+            return [...prev, message];
+          });
+        }
 
-    if (prev.some((msg) => msg.id === message.id)) {
-      return prev;
-    }
-
-    return [...prev, message];
-  });
-}
-
-return sentMessage;
+        return sentMessage;
       } catch (error) {
         console.error(
           "❌ Error sending message:",

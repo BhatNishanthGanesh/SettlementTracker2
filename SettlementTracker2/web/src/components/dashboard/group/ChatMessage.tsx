@@ -43,6 +43,7 @@ export function ChatMessage({ message, onEdit, onDelete }: ChatMessageProps) {
 
   const isSystem = message.sender === 'System' || message.type === 'system';
   const isExpense = message.type === 'expense';
+  const isSettlement = message.type === 'payment' || message.type === 'settlement_request';
   const isOwn = message.isOwn;
 
   // ✅ Use message.attachments directly (not inside metadata)
@@ -56,7 +57,7 @@ export function ChatMessage({ message, onEdit, onDelete }: ChatMessageProps) {
     return diffInMinutes > 5;
   };
 
-  const canEditOrDelete = isOwn && !isSystem && !isExpense && !isOlderThan5Min();
+  const canEditOrDelete = isOwn && !isSystem && !isExpense && !isSettlement && !isOlderThan5Min();
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -410,6 +411,52 @@ export function ChatMessage({ message, onEdit, onDelete }: ChatMessageProps) {
             </div>
           </div>
 
+          <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 px-1 ml-10">
+            {message.timestamp || new Date().toLocaleTimeString()}
+          </span>
+        </div>
+        <ImagePreviewModal />
+      </>
+    );
+  }
+
+  if (isSettlement) {
+    const isPayment = message.type === 'payment';
+
+    return (
+      <>
+        <div className="flex flex-col items-start w-full">
+          <div className="flex items-end gap-2 max-w-[90%]">
+            <div className={cn(
+              "w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center",
+              isPayment
+                ? "bg-emerald-100 dark:bg-emerald-900/50"
+                : "bg-amber-100 dark:bg-amber-900/50"
+            )}>
+              <Check className={cn(
+                "h-4 w-4",
+                isPayment ? "text-emerald-600" : "text-amber-600"
+              )} />
+            </div>
+            <div className={cn(
+              "relative px-4 py-3 rounded-2xl rounded-bl-none border",
+              isPayment
+                ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800"
+                : "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+            )}>
+              <p className="text-xs font-semibold mb-1">
+                {isPayment ? "Payment completed" : "Payment requested"}
+              </p>
+              <p className="text-sm whitespace-pre-wrap break-words">
+                {message.text}
+              </p>
+              {message.metadata?.amount && (
+                <p className="mt-2 text-sm font-semibold">
+                  {formatCurrency(message.metadata.amount)}
+                </p>
+              )}
+            </div>
+          </div>
           <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 px-1 ml-10">
             {message.timestamp || new Date().toLocaleTimeString()}
           </span>

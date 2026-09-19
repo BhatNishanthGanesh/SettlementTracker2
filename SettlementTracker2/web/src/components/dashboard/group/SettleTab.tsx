@@ -3,11 +3,20 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import {
   Trip,
   Member,
   MemberBalance,
+  Settlement,
 } from "@/types/trip.types";
 
 import { formatCurrency } from "@/utils/formatters";
@@ -22,17 +31,19 @@ import {
   Sparkles,
   ArrowUpRight,
   ArrowDownRight,
+  Smartphone,
 } from "lucide-react";
 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { settlementService } from "@/services/settlement.service";
 
 interface SettleTabProps {
   trip: Trip;
 
   currentUser: Member | undefined;
 
-  onSettleUp: (memberId: string) => void;
+  onSettleUp: (memberId: string) => void | Promise<void>;
 }
 
 export function SettleTab({
@@ -43,6 +54,14 @@ export function SettleTab({
   const [balances, setBalances] = useState<MemberBalance[]>([]);
   const [settlingMember, setSettlingMember] =
     useState<string | null>(null);
+  const [paymentMember, setPaymentMember] =
+    useState<MemberBalance | null>(null);
+  const [paymentStatus, setPaymentStatus] =
+    useState<"idle" | "processing" | "success">("idle");
+  const [settlements, setSettlements] = useState<Settlement[]>([]);
+  const [paymentReference, setPaymentReference] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [isLoadingSettlements, setIsLoadingSettlements] = useState(true);
 
   // ==================================================
   // CURRENT USER
@@ -53,6 +72,7 @@ export function SettleTab({
   // ==================================================
 
   const currentUserMemberId = currentUser?.id;
+  const currentUserId = currentUser?.userId ?? currentUserMemberId;
 
   // ==================================================
   // Calculate balances
@@ -64,17 +84,78 @@ export function SettleTab({
       return;
     }
 
-    const stats = calculateTripStats(
-      trip,
-      currentUserMemberId
-    );
+    const stats = calculateTripStats(trip, currentUserId);
 
     setBalances(stats.memberBalances);
   }, [
     trip,
     currentUser,
-    currentUserMemberId,
+    currentUserId,
   ]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadSettlements = async () => {
+      setIsLoadingSettlements(true);
+      try {
+        const loaded = await settlementService.list(trip.id);
+        if (active) {
+          setSettlements(loaded);
+        }
+      } catch (error) {
+        if (active) {
+          toast.error(error instanceof Error ? error.message : "Failed to load settlements");
+        }
+      } finally {
+        if (active) {
+          setIsLoadingSettlements(false);
+        }
+      }
+    };
+
+    loadSettlements();
+
+    return () => {
+      active = false;
+    };
+  }, [trip.id]);
+
+  const getCompletedAmount = (memberId: string) =>
+    settlements
+      .filter(
+        (settlement) =>
+          settlement.status === "completed" &&
+          settlement.payerId === currentUserMemberId &&
+          settlement.recipientId === memberId
+      )
+      .reduce((total, settlement) => total + settlement.amount, 0);
+
+  const getReceivedAmount = (memberId: string) =>
+    settlements
+      .filter(
+        (settlement) =>
+          settlement.status === "completed" &&
+          settlement.payerId === memberId &&
+          settlement.recipientId === currentUserMemberId
+      )
+      .reduce((total, settlement) => total + settlement.amount, 0);
+
+  const pendingRequestFor = (memberId: string) =>
+    settlements.find(
+      (settlement) =>
+        settlement.status === "pending" &&
+        settlement.payerId === memberId &&
+        settlement.recipientId === currentUserMemberId
+    );
+
+  const pendingRequestTo = (memberId: string) =>
+    settlements.find(
+      (settlement) =>
+        settlement.status === "pending" &&
+        settlement.payerId === currentUserMemberId &&
+        settlement.recipientId === memberId
+    );
 
   // ==================================================
   // Current user's calculated balance
@@ -85,13 +166,38 @@ export function SettleTab({
       return undefined;
     }
 
-    return balances.find(
+    const balance = balances.find(
       (balance) =>
         balance.memberId === currentUserMemberId
     );
+
+    if (!balance) {
+      return undefined;
+    }
+
+    const completedOutgoing = settlements
+      .filter(
+        (settlement) =>
+          settlement.status === "completed" &&
+          settlement.payerId === currentUserMemberId
+      )
+      .reduce((total, settlement) => total + settlement.amount, 0);
+    const completedIncoming = settlements
+      .filter(
+        (settlement) =>
+          settlement.status === "completed" &&
+          settlement.recipientId === currentUserMemberId
+      )
+      .reduce((total, settlement) => total + settlement.amount, 0);
+
+    return {
+      ...balance,
+      balance: balance.balance - completedOutgoing + completedIncoming,
+    };
   }, [
     balances,
     currentUserMemberId,
+    settlements,
   ]);
 
   // ==================================================
@@ -109,19 +215,22 @@ export function SettleTab({
       return [];
     }
 
-    return balances.filter((member) => {
-      if (
-        member.memberId ===
-        currentUserMemberId
-      ) {
-        return false;
-      }
+    return balances
+      .map((member) => ({
+        ...member,
+        balance: member.balance + getReceivedAmount(member.memberId),
+      }))
+      .filter((member) => {
+        if (member.memberId === currentUserMemberId) {
+          return false;
+        }
 
-      return member.balance < 0;
-    });
+        return member.balance < 0;
+      });
   }, [
     balances,
     currentUserMemberId,
+    settlements,
   ]);
 
   // ==================================================
@@ -139,19 +248,22 @@ export function SettleTab({
       return [];
     }
 
-    return balances.filter((member) => {
-      if (
-        member.memberId ===
-        currentUserMemberId
-      ) {
-        return false;
-      }
+    return balances
+      .map((member) => ({
+        ...member,
+        balance: member.balance - getCompletedAmount(member.memberId),
+      }))
+      .filter((member) => {
+        if (member.memberId === currentUserMemberId) {
+          return false;
+        }
 
-      return member.balance > 0;
-    });
+        return member.balance > 0;
+      });
   }, [
     balances,
     currentUserMemberId,
+    settlements,
   ]);
 
   // ==================================================
@@ -174,55 +286,87 @@ export function SettleTab({
     0
   );
 
-  // ==================================================
-  // Settle
-  // ==================================================
+  const openPaymentModal = (member: MemberBalance) => {
+    setPaymentMember(member);
+    setPaymentStatus("idle");
+    setPaymentReference(`payment-${crypto.randomUUID()}`);
+    setPaymentError(null);
+  };
 
-  const handleSettleUp = async (
-    memberId: string
-  ) => {
-    setSettlingMember(memberId);
+  const closePaymentModal = () => {
+    if (paymentStatus !== "processing") {
+      setPaymentMember(null);
+      setPaymentStatus("idle");
+      setPaymentReference(null);
+      setPaymentError(null);
+    }
+  };
 
-    const member = balances.find(
-      (item) =>
-        item.memberId === memberId
-    );
-
-    if (!member) {
-      setSettlingMember(null);
+  const handlePayment = async () => {
+    if (!paymentMember || paymentStatus !== "idle") {
       return;
     }
 
-    const amount = Math.abs(
-      member.balance
-    );
+    if (!paymentReference) {
+      return;
+    }
 
-    const isOwedByMember =
-      member.balance < 0;
+    setPaymentStatus("processing");
+    setPaymentError(null);
 
-    await new Promise((resolve) =>
-      setTimeout(resolve, 1500)
-    );
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await settlementService.pay(
+        trip.id,
+        paymentMember.memberId,
+        paymentReference
+      );
+      setSettlements(await settlementService.list(trip.id));
+      setPaymentStatus("success");
+      await onSettleUp(paymentMember.memberId);
+      window.setTimeout(() => {
+        setPaymentMember(null);
+        setPaymentStatus("idle");
+        setPaymentReference(null);
+      }, 900);
+    } catch (error) {
+      setPaymentStatus("idle");
+      setPaymentError(error instanceof Error ? error.message : "Payment failed");
+      toast.error("Payment failed", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    }
+  };
 
-    toast.success(
-      isOwedByMember
-        ? `✅ ${member.name} has paid you ${formatCurrency(
-            amount
-          )}!`
-        : `✅ You paid ${member.name} ${formatCurrency(
-            amount
-          )}!`,
-      {
-        description: isOwedByMember
-          ? "Payment confirmed! 🎉"
-          : "Payment sent successfully! 🎉",
-        duration: 4000,
-      }
-    );
+  const handleSettleUp = async (member: MemberBalance) => {
 
-    setSettlingMember(null);
+    if (!member.memberId) {
+      return;
+    }
 
-    onSettleUp(memberId);
+    if (member.balance > 0) {
+      openPaymentModal(member);
+      return;
+    }
+
+    if (pendingRequestFor(member.memberId)) {
+      return;
+    }
+
+    setSettlingMember(member.memberId);
+    try {
+      await settlementService.request(trip.id, member.memberId);
+      setSettlements(await settlementService.list(trip.id));
+      toast.success("Payment request sent", {
+        description: `${member.name} can now pay the outstanding balance.`,
+      });
+    } catch (error) {
+      toast.error("Could not send payment request", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setSettlingMember(null);
+    }
   };
 
   // ==================================================
@@ -243,7 +387,7 @@ export function SettleTab({
     );
   }
 
-  if (!balances.length) {
+  if (!balances.length || isLoadingSettlements) {
     return (
       <div className="flex-1 p-4 overflow-y-auto min-h-0 flex items-center justify-center">
         <div className="text-center">
@@ -408,15 +552,12 @@ export function SettleTab({
                     key={member.memberId}
                     member={member}
                     type="owes-you"
-                    onSettleUp={() =>
-                      handleSettleUp(
-                        member.memberId
-                      )
-                    }
+                    onSettleUp={() => handleSettleUp(member)}
                     isSettling={
                       settlingMember ===
                       member.memberId
                     }
+                    status={pendingRequestFor(member.memberId) ? "requested" : undefined}
                   />
 
                 )
@@ -462,15 +603,12 @@ export function SettleTab({
                     key={member.memberId}
                     member={member}
                     type="you-owe"
-                    onSettleUp={() =>
-                      handleSettleUp(
-                        member.memberId
-                      )
-                    }
+                    onSettleUp={() => handleSettleUp(member)}
                     isSettling={
                       settlingMember ===
                       member.memberId
                     }
+                    status={pendingRequestTo(member.memberId) ? "requested" : undefined}
                   />
 
                 )
@@ -526,6 +664,138 @@ export function SettleTab({
         )}
 
       </div>
+
+      <Dialog
+        open={paymentMember !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            closePaymentModal();
+          }
+        }}
+      >
+        <DialogContent
+          onInteractOutside={(event) => {
+            if (paymentStatus === "processing") {
+              event.preventDefault();
+            }
+          }}
+          onEscapeKeyDown={(event) => {
+            if (paymentStatus === "processing") {
+              event.preventDefault();
+            }
+          }}
+        >
+          {paymentMember && (
+            <>
+              <div className="dark:bg-gray-800 bg-white">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  {paymentStatus === "success" ? (
+                    <CheckCircle className="h-5 w-5 text-emerald-500" />
+                  ) : (
+                    <Smartphone className="h-5 w-5 text-blue-500" />
+                  )}
+                  {paymentStatus === "success"
+                    ? "Payment successful"
+                    : `Pay ${paymentMember.name}`}
+                </DialogTitle>
+                <DialogDescription>
+                  {paymentStatus === "processing"
+                    ? "Connecting securely to the demo UPI network..."
+                    : paymentStatus === "success"
+                    ? `${formatCurrency(Math.abs(paymentMember.balance))} has been sent to ${paymentMember.name}.`
+                    : "Review the settlement details before confirming your payment."}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex items-center gap-3 rounded-xl bg-blue-50 p-3 dark:bg-blue-950/30">
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-900/50 dark:text-blue-200">
+                  {trip.members.find((member) => member.id === paymentMember.memberId)?.image ? (
+                    <img
+                      src={trip.members.find((member) => member.id === paymentMember.memberId)?.image ?? ""}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    paymentMember.name.charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+                    Demo UPI payment
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    No real money will be transferred
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3 rounded-xl border border-gray-200  p-4 dark:border-gray-700 dark:bg-gray-800">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Recipient
+                  </span>
+                  <span className="text-right text-sm font-medium text-gray-900 dark:text-gray-50">
+                    {paymentMember.name}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    UPI ID
+                  </span>
+                  <span className="text-right text-sm font-medium text-gray-900 dark:text-gray-50">
+                    {`${paymentMember.name.toLowerCase().replace(/[^a-z0-9]/g, "") || "recipient"}@settlemate`}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between border-t border-gray-200 pt-3 dark:border-gray-700">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Amount
+                  </span>
+                  <span className="text-xl font-bold text-gray-900 dark:text-gray-50">
+                    {formatCurrency(Math.abs(paymentMember.balance))}
+                  </span>
+                </div>
+              </div>
+
+              {paymentError && (
+                <p className="text-sm text-rose-600 dark:text-rose-400">
+                  {paymentError}
+                </p>
+              )}
+
+              {paymentStatus === "success" ? (
+                <DialogFooter>
+                  <Button onClick={closePaymentModal}>Done</Button>
+                </DialogFooter>
+              ) : (
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={closePaymentModal}
+                    disabled={paymentStatus === "processing"}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handlePayment}
+                    disabled={paymentStatus === "processing"}
+                  >
+                    {paymentStatus === "processing" ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      `Pay ${formatCurrency(Math.abs(paymentMember.balance))}`
+                    )}
+                  </Button>
+                </DialogFooter>
+              )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -539,6 +809,7 @@ interface MemberBalanceCardProps {
   type: "owes-you" | "you-owe";
   onSettleUp: () => void;
   isSettling?: boolean;
+  status?: "requested";
 }
 
 function MemberBalanceCard({
@@ -546,6 +817,7 @@ function MemberBalanceCard({
   type,
   onSettleUp,
   isSettling,
+  status,
 }: MemberBalanceCardProps) {
   const isOwesYou =
     type === "owes-you";
@@ -620,7 +892,7 @@ function MemberBalanceCard({
               Processing...
             </>
           ) : isOwesYou ? (
-            "Request"
+            status === "requested" ? "Requested" : "Request"
           ) : (
             "Pay Now"
           )}

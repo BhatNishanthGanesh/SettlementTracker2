@@ -8,15 +8,15 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  email     String   @unique
-  password  String?
-  image     String?
-  provider  String?
-  deleted   Boolean  @default(false)
-  messages Message[] 
-  tripMembers TripMember[]  
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  email       String       @unique
+  password    String?
+  image       String?
+  provider    String?
+  deleted     Boolean      @default(false)
+  messages    Message[]
+  tripMembers TripMember[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -36,40 +36,44 @@ model Otp {
 }
 
 model Trip {
-  id            String       @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  destination   String?
-  description   String?
-  budget        Float
-  image         String?
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  destination String?
+  description String?
+  budget      Float
+  image       String?
 
-  startDate     DateTime
-  endDate       DateTime?
+  startDate DateTime
+  endDate   DateTime?
 
-  inviteCode    String       @unique
+  inviteCode String @unique
 
-  members       TripMember[]
-  expenses      Expense[]
-  messages      Message[]
+  members     TripMember[]
+  expenses    Expense[]
+  messages    Message[]
+  settlements Settlement[]
 
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model TripMember {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  tripId    String   @db.ObjectId
-  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId String @db.ObjectId
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
-  userId    String?  @db.ObjectId  
-  user      User?    @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId
+  user   User?   @relation(fields: [userId], references: [id])
 
-  name      String
-  email     String?
+  paymentsSent     Settlement[] @relation("SettlementPayer")
+  paymentsReceived Settlement[] @relation("SettlementRecipient")
 
-  joined    Boolean  @default(false)
-  isAdmin   Boolean  @default(false)
+  name  String
+  email String?
+
+  joined  Boolean @default(false)
+  isAdmin Boolean @default(false)
 
   lastReadAt DateTime?
 
@@ -80,45 +84,70 @@ model TripMember {
 }
 
 model Expense {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  tripId      String   @db.ObjectId
-  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId String @db.ObjectId
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
   title       String
   description String?
 
-  amount      Float
+  amount Float
 
-  paidBy      String
-  category    String?
+  paidBy   String
+  category String?
 
-  metadata    String? 
+  metadata String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Message {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  tripId      String   @db.ObjectId
-  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId String @db.ObjectId
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
-  senderId    String?   @db.ObjectId
-  sender      User?     @relation(fields: [senderId], references: [id],onDelete:SetNull)
+  senderId String? @db.ObjectId
+  sender   User?   @relation(fields: [senderId], references: [id], onDelete: SetNull)
 
-  text        String
-  type        String   @default("text")
-  metadata    String? 
-  edited      Boolean  @default(false)
-  editedAt    DateTime?
-  deleted     Boolean  @default(false)
+  text                  String
+  type                  String    @default("text")
+  metadata              String?
+  settlementReferenceId String?
+  edited                Boolean   @default(false)
+  editedAt              DateTime?
+  deleted               Boolean   @default(false)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([tripId])
   @@index([createdAt])
   @@index([deleted])
+}
+
+model Settlement {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  tripId String @db.ObjectId
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  payerId String     @db.ObjectId
+  payer   TripMember @relation("SettlementPayer", fields: [payerId], references: [id], onDelete: Cascade)
+
+  recipientId String     @db.ObjectId
+  recipient   TripMember @relation("SettlementRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  amount           Float
+  status           String  @default("pending")
+  referenceId      String  @unique
+  paymentMessageId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([payerId, recipientId, status])
 }

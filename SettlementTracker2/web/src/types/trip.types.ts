@@ -160,7 +160,7 @@ export interface Message {
   timestamp: string;
   isOwn: boolean;
 
-  type?: 'text' | 'expense' | 'system' | 'image';
+  type?: 'text' | 'expense' | 'system' | 'image' | 'payment' | 'settlement_request';
 
   createdAt?: string;
   updatedAt?: string;
@@ -216,6 +216,24 @@ export interface MessageMetadata {
   timestamp?: string;
 
   type?: "expense_deleted";
+  settlementId?: string;
+  referenceId?: string;
+  payerId?: string;
+  recipientId?: string;
+  status?: "pending" | "completed";
+}
+
+export interface Settlement {
+  id: string;
+  tripId: string;
+  payerId: string;
+  recipientId: string;
+  amount: number;
+  status: "pending" | "completed";
+  referenceId: string;
+  paymentMessageId?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SendMessagePayload {

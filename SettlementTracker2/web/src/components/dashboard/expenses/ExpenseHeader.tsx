@@ -55,14 +55,6 @@ export function ExpenseHeader({ trips, selectedTrip, onSelectTrip, onAddExpense 
             </SelectContent>
           </Select>
         </div>
-
-        <Button 
-          onClick={onAddExpense} 
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-300"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Expense
-        </Button>
       </div>
     </div>
   );

@@ -37,8 +37,8 @@ export function ExpenseCalendar({
   };
 
   const formatDate = (date: Date) => {
-    return date.toISOString().split('T')[0];
-  };
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
 
   const isToday = (date: Date) => {
     const today = new Date();
@@ -143,7 +143,7 @@ export function ExpenseCalendar({
                   {hasExpense && (
                     <div className="mt-auto">
                       <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 truncate">
-                        ₹{formatCurrency(totalSpentOnDate)}
+                        {formatCurrency(totalSpentOnDate)}
                       </div>
                       <div className="flex gap-0.5 mt-0.5">
                         {expenseCount > 0 && (
@@ -183,7 +183,7 @@ export function ExpenseCalendar({
               <div className="flex items-center gap-1.5">
                 <span>Total:</span>
                 <span className="font-semibold text-slate-700 dark:text-slate-300">
-                  ₹{formatCurrency(
+                  {formatCurrency(
                     Object.values(expensesByDate).reduce(
                       (sum, expenses) => sum + expenses.reduce((s, e) => s + e.amount, 0),
                       0

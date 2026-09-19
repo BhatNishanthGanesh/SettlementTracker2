@@ -113,7 +113,7 @@ export function ExpenseDetails({
                       </div>
                     </div>
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                      ₹{formatCurrency(expense.amount)}
+                      {formatCurrency(expense.amount)}
                     </span>
                   </div>
                 </div>
