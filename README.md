@@ -6,7 +6,7 @@ A full-stack group expense management and settlement platform for managing trips
 
 Screenshots are planned for the following application areas:
 
-![Dashboard](./SettlementTracker2/web/public/screenshots/dashboard.png)
+![Dashboard](./SettlementTracker2/web/public/dashboard.png)
 ![Group chat](./web/public/screenshots/group-chat.png)
 ![Expenses](./web/public/screenshots/expenses.png)
 ![AI assistant](./web/public/screenshots/ai-assistant.png)
