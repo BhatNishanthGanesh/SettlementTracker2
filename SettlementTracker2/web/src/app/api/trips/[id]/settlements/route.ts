@@ -74,7 +74,8 @@ function getAuthoritativeAmount(
 
   const stats = calculateTripStats(
     trip as unknown as Trip,
-    payer.userId
+    payer.userId,
+    false
   );
   const payerBalance = stats.memberBalances.find(
     (balance) => balance.memberId === payerId

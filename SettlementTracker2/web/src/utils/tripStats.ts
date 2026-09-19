@@ -53,10 +53,16 @@ const getSplits = (
 
 export const calculateTripStats = (
   trip: Trip,
-  currentUserId?: string
+  currentUserId?: string,
+  applySettlements = true
 ): TripStats => {
   const members = trip.members ?? [];
   const expenses = trip.expenses ?? [];
+  const settlements = applySettlements
+    ? (trip.settlements ?? []).filter(
+        (settlement) => settlement.status === "completed"
+      )
+    : [];
 
   // -----------------------------------------
   // Find the current user's TripMember
@@ -93,6 +99,10 @@ export const calculateTripStats = (
   // NOT total trip expenses
   // -----------------------------------------
   let totalSpent = 0;
+  const totalTripSpent = expenses.reduce(
+    (sum, expense) => sum + Number(expense.amount || 0),
+    0
+  );
 
   for (const expense of expenses) {
     // ---------------------------------------
@@ -162,13 +172,25 @@ export const calculateTripStats = (
           owes: 0,
         };
 
+      const settledAmount = settlements.reduce((total, settlement) => {
+        if (settlement.payerId === member.id) {
+          return total + Number(settlement.amount || 0);
+        }
+
+        if (settlement.recipientId === member.id) {
+          return total - Number(settlement.amount || 0);
+        }
+
+        return total;
+      }, 0);
+
       return {
         memberId: member.id!,
         name: member.name,
         paid: balance.paid,
         owes: balance.owes,
         balance:
-          balance.paid - balance.owes,
+          balance.paid - balance.owes + settledAmount,
       };
     });
 
@@ -196,6 +218,7 @@ export const calculateTripStats = (
 
   return {
     totalSpent,
+    totalTripSpent,
     expenseCount: expenses.length,
     memberCount: members.length,
     owedToMe,
@@ -214,6 +237,7 @@ export const calculateMultipleTripsStats = (
 
   const totals = {
     totalSpent: 0,
+    totalTripSpent: 0,
     totalTrips: trips.length,
     settledCount: 0,
     pendingCount: 0,
@@ -223,6 +247,7 @@ export const calculateMultipleTripsStats = (
   stats.forEach((trip) => {
     // Money THIS USER personally paid
     totals.totalSpent += trip.totalSpent;
+    totals.totalTripSpent += trip.totalTripSpent;
 
     const myBalance = trip.currentUserBalance;
 

@@ -26,6 +26,8 @@ export async function GET(
           name: true,
           email: true,
           image: true,
+          budgetNotifications: true,
+          paymentNotifications: true,
           createdAt: true,
           deleted: true,
         },
@@ -102,7 +104,7 @@ export async function PUT(
 
     const body = await request.json();
 
-    const { name, image } = body;
+    const { name, image, budgetNotifications, paymentNotifications } = body;
 
     const updatedUser =
       await prisma.user.update({
@@ -117,12 +119,22 @@ export async function PUT(
           ...(image !== undefined && {
             image,
           }),
+
+          ...(budgetNotifications !== undefined && {
+            budgetNotifications: Boolean(budgetNotifications),
+          }),
+
+          ...(paymentNotifications !== undefined && {
+            paymentNotifications: Boolean(paymentNotifications),
+          }),
         },
         select: {
           id: true,
           name: true,
           email: true,
           image: true,
+          budgetNotifications: true,
+          paymentNotifications: true,
         },
       });
 

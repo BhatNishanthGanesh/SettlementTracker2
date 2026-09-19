@@ -246,6 +246,7 @@ const handleSendMessage = (
                   );
 
                   await refresh();
+                  window.dispatchEvent(new Event("settlement-updated"));
                   toast.success(
                     `Settlement recorded for ${member?.name ?? "member"}.`,
                     { description: "The group balance has been updated." }

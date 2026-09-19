@@ -15,6 +15,25 @@ export function useMessages(tripId: string, tripName?: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    budgetNotifications: true,
+    paymentNotifications: true,
+  });
+
+  useEffect(() => {
+    fetch("/api/user/profile")
+      .then((response) => response.json())
+      .then((data) => {
+        const profile = data.data;
+        if (profile) {
+          setNotificationPreferences({
+            budgetNotifications: profile.budgetNotifications ?? true,
+            paymentNotifications: profile.paymentNotifications ?? true,
+          });
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   // =========================================================
   // Map API / Socket message -> frontend Message
@@ -190,6 +209,15 @@ export function useMessages(tripId: string, tripName?: string) {
           ];
         }
       );
+
+      const shouldNotify =
+        (newMessage.type === "budget_alert" && notificationPreferences.budgetNotifications) ||
+        ((newMessage.type === "payment" || newMessage.type === "settlement_request") &&
+          notificationPreferences.paymentNotifications);
+
+      if (shouldNotify && newMessage.text) {
+        toast.info(newMessage.text, { duration: 3500 });
+      }
     };
 
     // -------------------------------------------------------
@@ -341,6 +369,7 @@ export function useMessages(tripId: string, tripName?: string) {
   }, [
     tripId,
     mapApiMessageToMessage,
+    notificationPreferences,
   ]);
 
   // =========================================================

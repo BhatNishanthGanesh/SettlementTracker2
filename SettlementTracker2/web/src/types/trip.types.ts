@@ -125,6 +125,7 @@ export interface Trip {
   updatedAt: string;
   members: Member[];
   expenses: Expense[];
+  settlements?: Settlement[];
   messages?: Message[];
   lastMessage?: string | null;
   lastMessageAt?: string;
@@ -160,7 +161,7 @@ export interface Message {
   timestamp: string;
   isOwn: boolean;
 
-  type?: 'text' | 'expense' | 'system' | 'image' | 'payment' | 'settlement_request';
+  type?: 'text' | 'expense' | 'system' | 'image' | 'payment' | 'settlement_request' | 'budget_alert';
 
   createdAt?: string;
   updatedAt?: string;
@@ -272,6 +273,7 @@ export interface MemberBalance {
 
 export interface TripStats {
   totalSpent: number;
+  totalTripSpent: number;
   expenseCount: number;
   memberCount: number;
   owedToMe: number;
@@ -283,6 +285,7 @@ export interface MultipleTripStats {
   stats: TripStats[];
   totals: {
     totalSpent: number;
+    totalTripSpent: number;
     totalTrips: number;
     settledCount: number;
     pendingCount: number;

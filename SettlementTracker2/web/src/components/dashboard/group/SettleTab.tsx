@@ -84,13 +84,17 @@ export function SettleTab({
       return;
     }
 
-    const stats = calculateTripStats(trip, currentUserId);
+    const stats = calculateTripStats(
+      { ...trip, settlements },
+      currentUserId
+    );
 
     setBalances(stats.memberBalances);
   }, [
     trip,
     currentUser,
     currentUserId,
+    settlements,
   ]);
 
   useEffect(() => {
@@ -215,12 +219,7 @@ export function SettleTab({
       return [];
     }
 
-    return balances
-      .map((member) => ({
-        ...member,
-        balance: member.balance + getReceivedAmount(member.memberId),
-      }))
-      .filter((member) => {
+    return balances.filter((member) => {
         if (member.memberId === currentUserMemberId) {
           return false;
         }
@@ -230,7 +229,6 @@ export function SettleTab({
   }, [
     balances,
     currentUserMemberId,
-    settlements,
   ]);
 
   // ==================================================
@@ -248,12 +246,7 @@ export function SettleTab({
       return [];
     }
 
-    return balances
-      .map((member) => ({
-        ...member,
-        balance: member.balance - getCompletedAmount(member.memberId),
-      }))
-      .filter((member) => {
+    return balances.filter((member) => {
         if (member.memberId === currentUserMemberId) {
           return false;
         }
@@ -263,7 +256,6 @@ export function SettleTab({
   }, [
     balances,
     currentUserMemberId,
-    settlements,
   ]);
 
   // ==================================================

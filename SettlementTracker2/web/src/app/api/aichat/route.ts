@@ -166,6 +166,11 @@ export async function POST(
           members: true,
 
           expenses: true,
+          settlements: {
+            orderBy: {
+              createdAt: "asc",
+            },
+          },
 
           messages: {
             orderBy: {
@@ -213,6 +218,7 @@ export async function POST(
 
       members: trip.members.map((member) => ({
         id: member.id,
+        userId: member.userId,
         name: member.name,
         email: member.email ?? "",
         image: null,
@@ -231,6 +237,17 @@ export async function POST(
         metadata: expense.metadata ?? undefined,
         createdAt: expense.createdAt.toISOString(),
         updatedAt: expense.updatedAt.toISOString(),
+      })),
+      settlements: trip.settlements.map((settlement) => ({
+        id: settlement.id,
+        tripId: settlement.tripId,
+        payerId: settlement.payerId,
+        recipientId: settlement.recipientId,
+        amount: settlement.amount,
+        status: settlement.status as "pending" | "completed",
+        referenceId: settlement.referenceId,
+        createdAt: settlement.createdAt.toISOString(),
+        updatedAt: settlement.updatedAt.toISOString(),
       })),
     }));
 
@@ -266,6 +283,14 @@ export async function POST(
             "Unknown",
 
           budget: trip.budget,
+
+          totalSpent: tripStats.totalTripSpent,
+
+          remainingBudget: trip.budget - tripStats.totalTripSpent,
+
+          spendingPercentage: trip.budget > 0
+            ? (tripStats.totalTripSpent / trip.budget) * 100
+            : 0,
 
           spent:
             tripStats.totalSpent,
@@ -316,6 +341,14 @@ export async function POST(
                   expense.createdAt,
               })
             ),
+
+          settlements: trip.settlements.map((settlement) => ({
+            payerId: settlement.payerId,
+            recipientId: settlement.recipientId,
+            amount: settlement.amount,
+            status: settlement.status,
+            createdAt: settlement.createdAt,
+          })),
 
           lastMessage:
             lastMessage?.text ||

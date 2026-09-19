@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import prisma from "@/lib/db";
 import { requireUser } from "@/helpers/auth";
+import { evaluateBudgetAlerts } from "@/lib/budgetAlerts";
 
 // =====================================================
 // POST - Create expense
@@ -99,6 +100,13 @@ export async function POST(
         {
           status: 403,
         }
+      );
+    }
+
+    if (!trip.members.some((member) => member.id === paidBy)) {
+      return NextResponse.json(
+        { error: "Invalid expense payer" },
+        { status: 400 }
       );
     }
 
@@ -218,6 +226,12 @@ export async function POST(
           metadata,
         },
       });
+
+    try {
+      await evaluateBudgetAlerts(tripId);
+    } catch (alertError) {
+      console.error("Budget alert evaluation failed:", alertError);
+    }
 
     return NextResponse.json({
       success: true,

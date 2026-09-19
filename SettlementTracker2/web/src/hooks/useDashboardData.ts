@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Trip,
   TripData,
@@ -19,7 +19,7 @@ export function useDashboardData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { data:session } = useSession()
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -36,11 +36,24 @@ export function useDashboardData() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
+
+  useEffect(() => {
+    const refreshOnSettlement = () => fetchData();
+    const refreshOnFocus = () => fetchData();
+
+    window.addEventListener("settlement-updated", refreshOnSettlement);
+    window.addEventListener("focus", refreshOnFocus);
+
+    return () => {
+      window.removeEventListener("settlement-updated", refreshOnSettlement);
+      window.removeEventListener("focus", refreshOnFocus);
+    };
+  }, [fetchData]);
 
   const multipleStats = calculateMultipleTripsStats(trips,session?.user?.id);
 
@@ -61,9 +74,9 @@ const data: TripData[] = trips.map((trip, index) => {
 
     balance: tripStats.currentUserBalance,
     status:
-      tripStats.currentUserBalance < 0
-        ? "pending"
-        : "settled",
+      tripStats.currentUserBalance === 0
+        ? "settled"
+        : "pending",
 
     category: trip.destination ?? "General",
 

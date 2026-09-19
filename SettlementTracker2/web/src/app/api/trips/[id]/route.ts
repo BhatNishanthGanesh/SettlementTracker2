@@ -47,6 +47,11 @@ export async function GET(
             createdAt: "desc",
           },
         },
+        settlements: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
       },
     });
 

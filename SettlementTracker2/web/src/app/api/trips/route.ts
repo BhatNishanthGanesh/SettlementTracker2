@@ -18,7 +18,11 @@ export async function GET() {
       },
       include: {
         members: true,
-      expenses: true,
+        expenses: true,
+        settlements: {
+          where: { status: "completed" },
+          orderBy: { createdAt: "asc" },
+        },
         messages: {
           orderBy: {
             createdAt: "desc",

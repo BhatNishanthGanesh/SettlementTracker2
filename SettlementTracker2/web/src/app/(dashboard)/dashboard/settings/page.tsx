@@ -66,8 +66,20 @@ export default function Settings() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<{ id: string; name: string; email: string; image?: string } | null>(null);
+  const [profile, setProfile] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    image?: string;
+    budgetNotifications: boolean;
+    paymentNotifications: boolean;
+  } | null>(null);
   const [editForm, setEditForm] = useState({ name: '', image: '' });
+  const [preferences, setPreferences] = useState({
+    budgetNotifications: true,
+    paymentNotifications: true,
+  });
+  const [savingPreferences, setSavingPreferences] = useState(false);
 
   // Fetch user profile
   useEffect(() => {
@@ -83,6 +95,10 @@ export default function Settings() {
           name: userData.name || '', 
           image: userData.image || '' 
         });
+        setPreferences({
+          budgetNotifications: userData.budgetNotifications ?? true,
+          paymentNotifications: userData.paymentNotifications ?? true,
+        });
       } catch (error) {
         console.error('Error fetching profile:', error);
         // Use session data as fallback
@@ -92,6 +108,8 @@ export default function Settings() {
             name: session.user.name || '',
             email: session.user.email || '',
             image: session.user.image || '',
+            budgetNotifications: true,
+            paymentNotifications: true,
           });
           setEditForm({ 
             name: session.user.name || '', 
@@ -142,6 +160,28 @@ export default function Settings() {
       toast.success('👋 Logged out successfully');
     } catch (error) {
       toast.error('Failed to logout');
+    }
+  };
+
+  const handleSavePreferences = async (nextPreferences: typeof preferences) => {
+    setSavingPreferences(true);
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nextPreferences),
+      });
+
+      if (!response.ok) throw new Error('Failed to update preferences');
+      const data = await response.json();
+      const updatedUser = data.data || data.user || data;
+      setProfile((current) => current ? { ...current, ...updatedUser } : current);
+      setPreferences(nextPreferences);
+      toast.success('Notification preferences updated');
+    } catch (error) {
+      toast.error('Failed to update notification preferences');
+    } finally {
+      setSavingPreferences(false);
     }
   };
 
@@ -311,16 +351,38 @@ export default function Settings() {
           <div className="space-y-6">
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Payment Settings</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Payment features coming soon</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Control alerts for settlements and trip budgets.</p>
             </div>
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
-                <CreditCard className="h-10 w-10 text-blue-500" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Coming Soon</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mt-2">
-                Payment features are currently in development. We'll notify you when they're ready.
-              </p>
+            <div className="space-y-3">
+              {[
+                {
+                  key: 'budgetNotifications' as const,
+                  title: 'Budget alerts',
+                  description: 'Receive local alerts when a trip crosses 25%, 50%, 75%, or 100% of its budget.',
+                },
+                {
+                  key: 'paymentNotifications' as const,
+                  title: 'Settlement alerts',
+                  description: 'Receive local alerts for payment requests and completed settlements.',
+                },
+              ].map((preference) => (
+                <div key={preference.key} className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">{preference.title}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{preference.description}</p>
+                  </div>
+                  <Button
+                    variant={preferences[preference.key] ? 'default' : 'outline'}
+                    disabled={savingPreferences}
+                    onClick={() => handleSavePreferences({
+                      ...preferences,
+                      [preference.key]: !preferences[preference.key],
+                    })}
+                  >
+                    {preferences[preference.key] ? 'Enabled' : 'Disabled'}
+                  </Button>
+                </div>
+              ))}
             </div>
           </div>
         );

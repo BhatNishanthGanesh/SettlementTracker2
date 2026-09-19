@@ -41,9 +41,9 @@ export function ChatMessage({ message, onEdit, onDelete }: ChatMessageProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const isSystem = message.sender === 'System' || message.type === 'system';
+  const isSystem = (message.sender === 'System' || message.type === 'system') && message.type !== 'budget_alert';
   const isExpense = message.type === 'expense';
-  const isSettlement = message.type === 'payment' || message.type === 'settlement_request';
+  const isSettlement = message.type === 'payment' || message.type === 'settlement_request' || message.type === 'budget_alert';
   const isOwn = message.isOwn;
 
   // ✅ Use message.attachments directly (not inside metadata)
@@ -422,6 +422,7 @@ export function ChatMessage({ message, onEdit, onDelete }: ChatMessageProps) {
 
   if (isSettlement) {
     const isPayment = message.type === 'payment';
+    const isBudgetAlert = message.type === 'budget_alert';
 
     return (
       <>
@@ -429,23 +430,27 @@ export function ChatMessage({ message, onEdit, onDelete }: ChatMessageProps) {
           <div className="flex items-end gap-2 max-w-[90%]">
             <div className={cn(
               "w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center",
-              isPayment
+                isBudgetAlert
+                ? "bg-amber-100 dark:bg-amber-900/50"
+                : isPayment
                 ? "bg-emerald-100 dark:bg-emerald-900/50"
                 : "bg-amber-100 dark:bg-amber-900/50"
             )}>
               <Check className={cn(
                 "h-4 w-4",
-                isPayment ? "text-emerald-600" : "text-amber-600"
+                isBudgetAlert ? "text-amber-600" : isPayment ? "text-emerald-600" : "text-amber-600"
               )} />
             </div>
             <div className={cn(
               "relative px-4 py-3 rounded-2xl rounded-bl-none border",
-              isPayment
+              isBudgetAlert
+                ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+                : isPayment
                 ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800"
                 : "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
             )}>
               <p className="text-xs font-semibold mb-1">
-                {isPayment ? "Payment completed" : "Payment requested"}
+                {isBudgetAlert ? "Budget alert" : isPayment ? "Payment completed" : "Payment requested"}
               </p>
               <p className="text-sm whitespace-pre-wrap break-words">
                 {message.text}
