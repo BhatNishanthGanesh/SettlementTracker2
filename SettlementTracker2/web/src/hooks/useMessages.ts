@@ -369,13 +369,27 @@ export function useMessages(tripId: string, tripName?: string) {
         };
 
         const response =
-          await messageService.sendMessage(
-            tripId,
-            payload
-          );
+        await messageService.sendMessage(
+          tripId,
+          payload
+        );
 
+      const sentMessage = response.data?.data;
 
-        return response.data?.data;
+      if (sentMessage) {
+        const message =
+          mapApiMessageToMessage(sentMessage);
+
+        setMessages((prev) => {
+          if (prev.some((msg) => msg.id === message.id)) {
+            return prev;
+          }
+
+          return [...prev, message];
+        });
+      }
+
+      return sentMessage;
       } catch (error) {
         console.error(
           "❌ Error sending message:",
