@@ -52,7 +52,6 @@ export function SettleTab({
   // Expense.paidBy also contains TripMember.id
   // ==================================================
 
-  console.log("current user",currentUser)
   const currentUserMemberId = currentUser?.id;
 
   // ==================================================
@@ -68,54 +67,6 @@ export function SettleTab({
     const stats = calculateTripStats(
       trip,
       currentUserMemberId
-    );
-
-    console.log(
-      "========== SETTLE DEBUG =========="
-    );
-
-    console.log(
-      "Current TripMember:",
-      currentUser
-    );
-
-    console.log(
-      "Current TripMember ID:",
-      currentUserMemberId
-    );
-
-    console.log(
-      "Trip members:",
-      trip.members?.map((member) => ({
-        memberId: member.id,
-        userId: member.userId,
-        name: member.name,
-        email: member.email,
-      }))
-    );
-
-    console.log(
-      "Expenses:",
-      trip.expenses?.map((expense) => ({
-        title: expense.title,
-        amount: expense.amount,
-        paidBy: expense.paidBy,
-        metadata: expense.metadata,
-      }))
-    );
-
-    console.log(
-      "Calculated balances:",
-      stats.memberBalances
-    );
-
-    console.log(
-      "Current user balance:",
-      stats.currentUserBalance
-    );
-
-    console.log(
-      "==================================="
     );
 
     setBalances(stats.memberBalances);
@@ -336,14 +287,6 @@ export function SettleTab({
 
             </div>
 
-            <Badge
-              variant="outline"
-              className="text-[10px] border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30"
-            >
-              <Sparkles className="h-3 w-3 mr-1 text-emerald-500" />
-              Live
-            </Badge>
-
           </div>
 
           <div className="grid grid-cols-3 gap-3">
@@ -416,59 +359,6 @@ export function SettleTab({
             </div>
 
           </div>
-
-          {/* TOTALS */}
-
-          {(totalOwed > 0 ||
-            totalOwes > 0) && (
-
-            <div className="mt-4 p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl flex items-center justify-between">
-
-              <div className="flex items-center gap-4 text-sm">
-
-                {totalOwed > 0 && (
-                  <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-
-                    <ArrowUpRight className="h-4 w-4" />
-
-                    {formatCurrency(
-                      totalOwed
-                    )}{" "}
-                    owed to you
-
-                  </span>
-                )}
-
-                {totalOwes > 0 && (
-                  <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1">
-
-                    <ArrowDownRight className="h-4 w-4" />
-
-                    {formatCurrency(
-                      totalOwes
-                    )}{" "}
-                    you owe
-
-                  </span>
-                )}
-
-              </div>
-
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-emerald-600 dark:text-emerald-400"
-                onClick={() =>
-                  toast.info(
-                    "Settle all feature coming soon!"
-                  )
-                }
-              >
-                Settle All
-              </Button>
-
-            </div>
-          )}
 
         </div>
 

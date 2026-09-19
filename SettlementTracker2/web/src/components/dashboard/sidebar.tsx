@@ -50,10 +50,31 @@ export default function Sidebar({ initialCollapsed, onCollapseChange }: SidebarP
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(initialCollapsed);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+  useEffect(() => {
+  const fetchProfileImage = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const userData = data.data || data.user || data;
+
+      setProfileImage(userData.image || null);
+    } catch (error) {
+      console.error('Failed to fetch profile image:', error);
+    }
+  };
+
+  if (session?.user) {
+    fetchProfileImage();
+  }
+}, [session]);
 
   const toggleCollapse = () => {
     const newState = !isCollapsed;
@@ -262,8 +283,8 @@ export default function Sidebar({ initialCollapsed, onCollapseChange }: SidebarP
               isCollapsed ? "justify-center" : ""
             )}
           >
-            {session?.user?.image ? (
-              <img src={session.user.image} alt="User Profile" className="h-10 w-10 rounded-full object-cover flex-shrink-0" />
+            {profileImage  || session?.user?.image ? (
+              <img src={profileImage ?? session?.user.image??""} alt="User Profile" className="h-10 w-10 rounded-full object-cover flex-shrink-0" />
             ) : (
               <div className="h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center flex-shrink-0">
                 <User size={isCollapsed ? 20 : 16} />

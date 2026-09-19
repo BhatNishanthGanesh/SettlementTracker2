@@ -52,7 +52,13 @@ export function GroupProvider({
         await tripService.getUserTrips();
 
       const trips: Trip[] = data.data ?? [];
-      setGroups(trips);
+
+      const tripsWithLastMessage = trips.map((trip) => ({
+        ...trip,
+        lastMessageAt: trip.messages?.[0]?.createdAt ?? trip.createdAt,
+      }));
+
+      setGroups(tripsWithLastMessage);
 
       if (!trips.length) {
         setUnreadCounts({});
@@ -167,15 +173,40 @@ export function GroupProvider({
     if (!userId) return;
 
     const handleNewMessage = (message: any) => {
-      if (!message.tripId) return;
 
-      if (message.senderId !== userId) {
-        incrementUnread(message.tripId);
-      }
+  if (!message?.tripId) {
+    return;
+  }
 
-      fetchGroups();
+  setGroups((prev) => {
+
+    const index = prev.findIndex(
+      (group) => group.id === message.tripId
+    );
+
+    if (index === -1) {
+      return prev;
+    }
+
+    const updatedGroup = {
+      ...prev[index],
+      lastMessageAt:
+        message.createdAt || new Date().toISOString(),
     };
 
+    const newGroups = [
+      updatedGroup,
+      ...prev.slice(0, index),
+      ...prev.slice(index + 1),
+    ];
+
+    return newGroups;
+  });
+
+  if (message.senderId !== userId) {
+    incrementUnread(message.tripId);
+  }
+};
     const handleMessageUpdate = () => {
       fetchGroups();
     };

@@ -6,7 +6,6 @@ import Hero from "@/components/landing/Hero";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Navbar from "@/components/landing/Navbar";
 import UseCases from "@/components/landing/UseCases";
-import Stats from "@/components/landing/Stats";
 
 export default function Home() {
   return (
@@ -16,7 +15,6 @@ export default function Home() {
       <UseCases/>
       <Features/>
       <HowItWorks/>
-      <Stats/>
       <Footer/>
     </div>
   );

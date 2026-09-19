@@ -28,11 +28,9 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials: any) {
         try {
-          console.log("Received credentials:", credentials);
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
           });
-          console.log("User from database:", user);
 
           if (!user || !user.password) return null;
 
@@ -67,25 +65,18 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async signIn({ user, account }) {
-      console.log("SIGNIN CALLBACK");
-      console.log(user);
-      console.log(account);
 
       if (!account || !user) return false;
 
       if (account.provider === "google") {
-        console.log("Google login");
 
         if (!user.email || !user.name) {
-          console.log("Missing email or name");
           return false;
         }
 
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email },
         });
-
-        console.log("Existing:", existingUser);
 
         if (!existingUser) {
           const created = await prisma.user.create({
@@ -96,8 +87,6 @@ export const authOptions: NextAuthOptions = {
               provider: "google",
             },
           });
-
-          console.log("Created:", created);
         }
 
         return true;
@@ -107,11 +96,6 @@ export const authOptions: NextAuthOptions = {
     },
 
     async jwt({ token, user, trigger, session }) {
-      console.log("JWT CALLBACK");
-      console.log("Token:", token);
-      console.log("User:", user);
-      console.log("Trigger:", trigger);
-      console.log("Session:", session);
 
       if (token.email) {
         const dbUser = await prisma.user.findUnique({

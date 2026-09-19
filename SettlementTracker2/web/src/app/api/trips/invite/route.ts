@@ -92,8 +92,6 @@ export async function POST(request: NextRequest) {
             subject: `You're invited to join "${tripName}"!`,
             html: emailContent,
           });
-
-          console.log(`Email sent to ${member.email}:`, info.messageId);
           return { success: true, email: member.email, messageId: info.messageId };
         } catch (error) {
           console.error(`Error sending to ${member.email}:`, error);

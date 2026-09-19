@@ -23,7 +23,6 @@ import { GroupHeader } from "@/components/dashboard/group/GroupHeader";
 import { ChatTab } from "@/components/dashboard/group/ChatTab";
 import { ExpensesTab } from "@/components/dashboard/group/ExpensesTab";
 import { SettleTab } from "@/components/dashboard/group/SettleTab";
-import { calculateTripStats } from "@/utils/tripStats";
 
 import { GroupContext } from "@/context/GroupTripContext";
 
@@ -37,6 +36,7 @@ export default function GroupPage() {
   const params = useParams();
   const { data: session } = useSession();
   const groupId = params?.id as string;
+  
 
   const context = useContext(GroupContext);
 
@@ -59,6 +59,11 @@ export default function GroupPage() {
     setShowLeaveDialog,
   } = context;
 
+  const totalTripSpent = (trip?.expenses ?? []).reduce(
+    (sum:any, expense:any) => sum + Number(expense.amount),
+    0
+  );
+
   const {
     messages,
     isSending,
@@ -71,9 +76,6 @@ export default function GroupPage() {
     deleteMessage,
   } = useMessages(groupId, trip?.name);
 
-  const tripStats = trip
-    ? calculateTripStats(trip)
-    : null;
 
 
 const handleSendMessage = (
@@ -223,7 +225,7 @@ const handleSendMessage = (
             >
               <ExpensesTab
                 trip={trip}
-                totalSpent={tripStats?.totalSpent ?? 0}
+                totalSpent={totalTripSpent}
                 onExpenseAdded={handleExpenseAdded}
                 onExpenseDeleted={handleExpenseDeleted}
                 currentUser={currentUser}

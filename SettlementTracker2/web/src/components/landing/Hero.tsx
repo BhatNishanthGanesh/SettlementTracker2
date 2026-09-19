@@ -31,43 +31,8 @@ export default function Hero() {
                         </p>
                         <div className="flex gap-3 flex-wrap">
                             <button className="bg-purple-600 hover:bg-purple-500 border-none text-white px-6 py-3 rounded-xl text-[15px] font-semibold cursor-pointer flex items-center gap-2 transition-colors">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <path d="M8 3v10M3 8h10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-                                </svg>
-                                Create a trip
-                            </button>
-                            <button className="bg-white/5 hover:bg-white/10 border border-white/10 text-white/90 px-6 py-3 rounded-xl text-[15px] cursor-pointer transition-colors">
                                 See a demo →
                             </button>
-                        </div>
-                        <div className="mt-8 flex items-center gap-5">
-                            <div className="flex items-center">
-                                {tripMembers.map((member, i) => (
-                                    <Avatar
-                                        key={member.initials}
-                                        className={`h-10 w-10 border-2 border-[#0A0A0F] ${i !== 0 ? "-ml-3" : ""
-                                            }`}
-                                    >
-                                        <AvatarFallback
-                                            className={`bg-gradient-to-br ${member.gradient} text-[11px] w-20 font-bold text-white`}
-                                        >
-                                            {member.initials}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                ))}
-                            </div>
-
-                            <p className="text-sm text-white/40">
-                                Trusted by{" "}
-                                <span className="font-semibold text-white/80">
-                                    <AnimatedCounter
-                                        end={2400}
-                                        suffix="+"
-                                        duration={2000}
-                                    />
-                                </span>{" "}
-                                groups this month
-                            </p>
                         </div>
                     </div>
                 </FadeInUp>

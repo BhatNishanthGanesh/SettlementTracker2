@@ -48,7 +48,7 @@ export const getInsights = (
   {
     icon: "👥",
     title: "Group management",
-    desc: "Create a group, invite people by link or email. Anyone can join and add expenses.",
+    desc: "Create a group, invite people by email. Anyone can join and add expenses.",
     color: "violet",
   },
   {
@@ -60,7 +60,7 @@ export const getInsights = (
   {
     icon: "🧮",
     title: "Smart settlement",
-    desc: "Our algorithm minimises total transactions. 6 debts can become just 3 payments.",
+    desc: "Simplifies group debts into fewer, easier, smarter payments.",
     color: "amber",
   },
   {
@@ -74,13 +74,7 @@ export const getInsights = (
     title: "AI Spending Assistant",
     desc: "Get smart insights on your spending pattern to stay on budget.",
     color: "violet",
-  },
-  {
-    icon: "✅",
-    title: "Mark as settled",
-    desc: "Once paid, mark it done. The balance updates for everyone in real time.",
-    color: "teal",
-  },
+  }
 ];
 
 export const cardStyles = {
@@ -114,34 +108,9 @@ export const steps = [
     step: "04",
     title: "Get AI insights",
     desc: "Our AI analyzes your spending patterns and gives you smart recommendations to stay on track.",
-  },
-  {
-    step: "05",
-    title: "Pay and mark settled",
-    desc: "Pay via any UPI app. Come back and mark it settled. Everyone sees the updated balance.",
-  },
+  }
 ];
 
-export const stats = [
-  {
-    num: 24000,
-    suffix: "+",
-    label: "Expenses tracked",
-    prefix: "",
-  },
-  {
-    num: 18,
-    suffix: "Cr+",
-    label: "Total amount split",
-    prefix: "₹",
-  },
-  {
-    num: 99,
-    suffix: "%",
-    label: "Settlement accuracy",
-    prefix: "",
-  },
-];
 
 export const useCases = [
   "Dorms",

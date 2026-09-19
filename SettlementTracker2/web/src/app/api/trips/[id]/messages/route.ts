@@ -30,13 +30,6 @@ export async function POST(
       attachments,
     } = body;
 
-    console.log("📨 Received message:", {
-      text,
-      type,
-      attachmentsCount:
-        attachments?.length || 0,
-    });
-
     if (
       !text &&
       (!attachments ||
@@ -192,11 +185,6 @@ export async function POST(
         message: formattedMessage,
       }),
     }
-  );
-
-  console.log(
-    "📡 Broadcast response:",
-    response.status
   );
 
   if (!response.ok) {

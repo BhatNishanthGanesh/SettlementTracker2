@@ -4,7 +4,6 @@ import prisma from "@/lib/db";
 
 export async function requireUser() {
   const session = await getServerSession(authOptions);
-  console.log("session is",session)
   if (!session?.user?.email) {
     throw new Error("Unauthorized");
   }

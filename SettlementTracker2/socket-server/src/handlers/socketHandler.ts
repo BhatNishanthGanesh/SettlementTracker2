@@ -7,8 +7,6 @@ export function registerSocketHandlers(io: Server) {
   });
 
   io.on("connection", (socket: Socket) => {
-    console.log(`Client connected: ${socket.id}`);
-    console.log(`Client address: ${socket.handshake.address}`);
 
     socket.emit("connection-confirmed", {
       id: socket.id,
@@ -19,8 +17,6 @@ export function registerSocketHandlers(io: Server) {
     socket.on("join-room", (tripId: string) => {
       socket.join(tripId);
 
-      console.log(`Socket ${socket.id} joined room: ${tripId}`);
-
       socket.emit("room-joined", {
         tripId,
         success: true,
@@ -30,8 +26,6 @@ export function registerSocketHandlers(io: Server) {
     // Leave room
     socket.on("leave-room", (tripId: string) => {
       socket.leave(tripId);
-
-      console.log(`Socket ${socket.id} left room: ${tripId}`);
     });
 
   

@@ -27,7 +27,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl ">
-                        <Image src="/SettlementTracker.jpg" alt="Settlement Tracker"  width={40} height={40}/>
+                        <Image src="/settlementTracker.jpg" alt="Settlement Tracker"  width={40} height={40}/>
                     </div>
 
                     <span className="text-sm md:text-base font-semibold tracking-tight text-white">

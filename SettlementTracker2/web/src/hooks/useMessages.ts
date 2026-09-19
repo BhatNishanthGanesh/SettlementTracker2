@@ -77,8 +77,6 @@ export function useMessages(tripId: string, tripName?: string) {
         const response =
           await messageService.getMessages(tripId);
 
-        console.log("📨 Messages response:", response);
-
         const fetchedMessages =
           response.data?.data || [];
 
@@ -156,11 +154,6 @@ export function useMessages(tripId: string, tripName?: string) {
   useEffect(() => {
     if (!tripId) return;
 
-    console.log(
-      "🔌 Setting up WebSocket connection for trip:",
-      tripId
-    );
-
     socketService.connect(tripId);
 
     setIsConnected(
@@ -174,11 +167,6 @@ export function useMessages(tripId: string, tripName?: string) {
     const messageHandler = (
       newMessage: any
     ) => {
-      console.log(
-        "📩 New message received via socket:",
-        newMessage
-      );
-
       setMessages(
         (prev: Message[]) => {
           // Prevent duplicates
@@ -209,10 +197,7 @@ export function useMessages(tripId: string, tripName?: string) {
     // -------------------------------------------------------
 
     const editHandler = (editedMessage: any) => {
-      console.log(
-        "✏️ Message edited via socket:",
-        editedMessage
-      );
+
 
       setMessages((prev: Message[]) =>
         prev.map((msg: Message) =>
@@ -233,10 +218,6 @@ export function useMessages(tripId: string, tripName?: string) {
     const deleteHandler = (data: {
       messageId: string;
     }) => {
-      console.log(
-        "🗑️ Message deleted via socket:",
-        data
-      );
 
       setMessages(
         (prev: Message[]) =>
@@ -288,10 +269,6 @@ export function useMessages(tripId: string, tripName?: string) {
         error?: string;
       }
     ) => {
-      console.log(
-        "🔌 Connection status changed:",
-        status
-      );
 
       setIsConnected(
         status.connected
@@ -391,21 +368,11 @@ export function useMessages(tripId: string, tripName?: string) {
           attachments: attachments || [],
         };
 
-        console.log(
-          "📤 Sending message:",
-          payload
-        );
-
         const response =
           await messageService.sendMessage(
             tripId,
             payload
           );
-
-        console.log(
-          "📨 Send response:",
-          response
-        );
 
 
         return response.data?.data;

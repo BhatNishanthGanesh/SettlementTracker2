@@ -1,8 +1,6 @@
-// app/join/[inviteCode]/page.tsx
-
 "use client";
 
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Loader2 } from "lucide-react";
@@ -13,36 +11,27 @@ import { tripJoinService } from "@/services/tripJoin.service";
 export default function JoinTripPage({
   params,
 }: {
-  params: Promise<{
+  params: {
     inviteCode: string;
-  }>;
+  };
 }) {
   const router = useRouter();
 
-  const {
-    status,
-  } = useSession();
+  const { status } = useSession();
 
-  const { inviteCode } = use(params);
+  const { inviteCode } = params;
 
   useEffect(() => {
     const joinTrip = async () => {
       if (status === "authenticated") {
         try {
-          const response =
-            await tripJoinService.joinTrip(
-              inviteCode
-            );
+          const response = await tripJoinService.joinTrip(inviteCode);
 
           const data = response.data;
 
-          toast.success(
-            `Welcome to ${data.data.tripName}!`
-          );
+          toast.success(`Welcome to ${data.data.tripName}!`);
 
-          router.push(
-            `/dashboard/group/${data.data.tripId}`
-          );
+          router.push(`/dashboard/group/${data.data.tripId}`);
         } catch (error) {
           toast.error(
             error instanceof Error
@@ -50,21 +39,13 @@ export default function JoinTripPage({
               : "Failed to join trip"
           );
         }
-      } else if (
-        status === "unauthenticated"
-      ) {
-        router.push(
-          `/login?callbackUrl=/join/${inviteCode}`
-        );
+      } else if (status === "unauthenticated") {
+        router.push(`/login?callbackUrl=/join/${inviteCode}`);
       }
     };
 
     joinTrip();
-  }, [
-    status,
-    inviteCode,
-    router,
-  ]);
+  }, [status, inviteCode, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

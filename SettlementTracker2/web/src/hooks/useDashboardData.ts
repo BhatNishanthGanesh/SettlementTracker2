@@ -25,8 +25,6 @@ export function useDashboardData() {
       setError(null);
 
       const response = await tripService.getUserTrips();
-      console.log("DASHBOARD RESPONSE:", response);
-    console.log("DASHBOARD DATA:", response.data);
       setTrips(response.data.data ?? []);
     } catch (error) {
       setError(

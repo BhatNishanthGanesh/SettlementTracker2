@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 border-t border-white/10 px-8 py-8">
       <div className="flex items-center gap-2">
         <div className="flex h-[22px] w-[22px] items-center justify-center rounded-md">
-          <Image src="/SettlementTracker.jpg" alt="Settlement Tracker"  width={22} height={22}/>
+          <Image src="/settlementTracker.jpg" alt="Settlement Tracker"  width={22} height={22}/>
         </div>
 
         <span className="text-sm font-semibold text-white">

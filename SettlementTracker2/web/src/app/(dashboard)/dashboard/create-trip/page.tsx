@@ -17,7 +17,6 @@ import { steps } from "@/constants/trip.constant";
 
 export default function CreateTrip() {
   const { data: session } = useSession();
-  console.log(session)
   const [step, setStep] = useState(1);
 
   const {

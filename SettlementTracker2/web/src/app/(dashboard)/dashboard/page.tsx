@@ -26,7 +26,6 @@ export default function Dashboard() {
     chartData,
     groupData,
   } = useDashboardData();
-  console.log(stats)
 
   useEffect(() => {
     setCurrentPage(1);

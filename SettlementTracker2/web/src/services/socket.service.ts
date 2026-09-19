@@ -3,8 +3,6 @@ import { io, Socket } from 'socket.io-client';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
 
-console.log('Socket URL configured:', SOCKET_URL);
-
 class SocketService {
   private socket: Socket | null = null;
   private listeners: Map<string, Set<Function>> = new Map();
@@ -29,8 +27,6 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
     }
-
-    console.log(`Connecting to socket server at ${SOCKET_URL}`);
 
     this.socket = io(SOCKET_URL, {
       path: '/api/socket',

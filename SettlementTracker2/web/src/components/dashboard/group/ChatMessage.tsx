@@ -41,14 +41,6 @@ export function ChatMessage({ message, onEdit, onDelete }: ChatMessageProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  console.log('ChatMessage:', {
-    id: message.id,
-    text: message.text,
-    attachments: message.attachments,
-    hasAttachments: !!(message.attachments && message.attachments.length > 0),
-    metadata: message.metadata,
-  });
-
   const isSystem = message.sender === 'System' || message.type === 'system';
   const isExpense = message.type === 'expense';
   const isOwn = message.isOwn;

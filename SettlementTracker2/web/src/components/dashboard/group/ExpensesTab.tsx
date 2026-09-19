@@ -165,7 +165,6 @@ export function ExpensesTab({
   };
 
   const canDeleteExpense = (expense: Expense): boolean => {
-    console.log(expense.paidBy, currentUser?.id, isAdmin);
     const isOwn = expense.paidBy === currentUser?.id;
     return isOwn || isAdmin;
   };
