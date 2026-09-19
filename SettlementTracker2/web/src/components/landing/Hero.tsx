@@ -30,9 +30,14 @@ export default function Hero() {
                             Track every shared expense on your trip. Settlement Tracker calculates who owes what and minimises the number of transactions to settle up.
                         </p>
                         <div className="flex gap-3 flex-wrap">
-                            <button className="bg-purple-600 hover:bg-purple-500 border-none text-white px-6 py-3 rounded-xl text-[15px] font-semibold cursor-pointer flex items-center gap-2 transition-colors">
+                            <a
+                                href="https://drive.google.com/file/d/1NzFQlzzIDkeCvkbyHtEKBpbI9ZzOPEpg/view?usp=drive_link"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-purple-600 hover:bg-purple-500 border-none text-white px-6 py-3 rounded-xl text-[15px] font-semibold cursor-pointer flex items-center gap-2 transition-colors"
+                            >
                                 See a demo →
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </FadeInUp>
