@@ -6,10 +6,10 @@ A full-stack group expense management and settlement platform for managing trips
 
 Screenshots are planned for the following application areas:
 
-![Dashboard](./public/screenshots/dashboard.png)
-![Group chat](./public/screenshots/group-chat.png)
-![Expenses](./public/screenshots/expenses.png)
-![AI assistant](./public/screenshots/ai-assistant.png)
+![Dashboard](./web/public/screenshots/dashboard.png)
+![Group chat](./web/public/screenshots/group-chat.png)
+![Expenses](./web/public/screenshots/expenses.png)
+![AI assistant](./web/public/screenshots/ai-assistant.png)
 
 The screenshot files are placeholders and are not included in the repository yet.
 
